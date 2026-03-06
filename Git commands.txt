@@ -1,0 +1,6 @@
+git init
+git remote add origin https://github.com/dineshraj66/Angry-Bird.git
+git add .
+git commit -m "Add Angry Bird PWA with Firebase"
+git branch -M main
+git push -u origin main
