@@ -1,6 +1,30 @@
 git init
 git remote add origin https://github.com/dineshraj66/Angry-Bird.git
 git add .
-git commit -m "Add Angry Bird PWA with Firebase"
+git commit -m "update"
 git branch -M main
 git push -u origin main
+
+
+
+
+git clone https://github.com/dineshraj66/HappyFamily.git "G:\My Drive\5.Mobile Apps\HappyFamily"
+git clone https://github.com/dineshraj66/Daily-Reminder-App.git "G:\My Drive\5.Mobile Apps\DailyReminder"
+git clone https://github.com/dineshraj66/Cash-Ledger.git "G:\My Drive\5.Mobile Apps\CashLedger"
+git clone https://github.com/dineshraj66/Page_Turn.git "G:\My Drive\5.Mobile Apps\PageTurn"
+git clone https://github.com/dineshraj66/Life_Log.git  "G:\My Drive\5.Mobile Apps\Life_Log"
+git clone
+
+
+
+
+
+
+Angry bird - Done
+HappyFamily - Done
+Cashledger
+DailyReminder
+PageTurn
+LifeLog
+Love Today
+Trade Tracker

@@ -659,17 +659,31 @@
         try {
             firebase.initializeApp(firebaseConfig);
             db = firebase.database();
+            console.log('Firebase initialized successfully');
+            
+            // Check Firebase connection
+            db.ref('.info/connected').on('value', function(snapshot) {
+                if (snapshot.val() === true) {
+                    console.log('Firebase connected');
+                    isOnline = true;
+                    loadEntries(); // Refresh from Firebase when reconnected
+                } else {
+                    console.log('Firebase disconnected');
+                    isOnline = false;
+                }
+            });
         } catch (err) {
-            console.warn('Firebase initialization failed, using localStorage:', err);
+            console.error('Firebase initialization error:', err);
             isOnline = false;
+            showToast('Firebase connection failed - using local storage');
         }
 
         // ========== STATE MANAGEMENT ==========
         let selectedEmotion = null;
         let entries = [];
-        let userId = localStorage.getItem('angryBirdUserId') || generateUserId();
-        localStorage.setItem('angryBirdUserId', userId);
-
+        // Use a consistent user ID (not device-specific) for cross-device sync
+        let userId = 'shared-user';
+        
         function generateUserId() {
             return 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
         }
@@ -781,20 +795,22 @@
                 timestamp: Date.now()
             };
 
+            // Save to localStorage first
+            saveToLocalStorage(entry);
+
             if (isOnline && db) {
-                db.ref(`users/${userId}/entries/${entry.id}`).set(entry, (err) => {
-                    if (err) {
-                        console.log('Firebase write failed, using localStorage');
-                        saveToLocalStorage(entry);
-                    } else {
-                        saveToLocalStorage(entry);
+                db.ref(`users/${userId}/entries/${entry.id}`).set(entry)
+                    .then(() => {
+                        console.log('Entry saved to Firebase:', entry.id);
                         clearForm();
                         showToast('Entry saved! 🎉');
                         loadEntries();
-                    }
-                });
+                    })
+                    .catch((err) => {
+                        console.error('Firebase write error:', err);
+                        showToast('Saved locally (Firebase sync failed)');
+                    });
             } else {
-                saveToLocalStorage(entry);
                 clearForm();
                 showToast('Entry saved locally! 🎉');
                 loadEntries();
@@ -827,13 +843,19 @@
                     snap.forEach(child => {
                         firebaseEntries.push(child.val());
                     });
-                    entries = [...firebaseEntries, ...stored].reduce((acc, entry) => {
-                        if (!acc.find(e => e.id === entry.id)) {
-                            acc.push(entry);
-                        }
-                        return acc;
-                    }, []);
-                    entries.sort((a, b) => b.timestamp - a.timestamp);
+                    console.log('Firebase entries loaded:', firebaseEntries.length);
+                    
+                    // Merge Firebase and local entries (Firebase is source of truth)
+                    entries = firebaseEntries.sort((a, b) => b.timestamp - a.timestamp);
+                    
+                    // Update local storage with Firebase data
+                    localStorage.setItem('angryBirdEntries', JSON.stringify(entries));
+                    
+                    updateDashboard();
+                    updateHistory();
+                }, (error) => {
+                    console.error('Firebase read error:', error);
+                    // Fall back to local storage
                     updateDashboard();
                     updateHistory();
                 });
@@ -966,11 +988,21 @@
             localStorage.setItem('angryBirdEntries', JSON.stringify(filtered));
 
             if (isOnline && db) {
-                db.ref(`users/${userId}/entries/${entryId}`).remove();
+                db.ref(`users/${userId}/entries/${entryId}`).remove()
+                    .then(() => {
+                        console.log('Entry deleted from Firebase:', entryId);
+                        loadEntries();
+                        showToast('Entry deleted');
+                    })
+                    .catch((err) => {
+                        console.error('Firebase delete error:', err);
+                        loadEntries();
+                        showToast('Deleted locally (sync may have failed)');
+                    });
+            } else {
+                loadEntries();
+                showToast('Entry deleted');
             }
-
-            loadEntries();
-            showToast('Entry deleted');
         }
 
         // ========== TOAST NOTIFICATION ==========
