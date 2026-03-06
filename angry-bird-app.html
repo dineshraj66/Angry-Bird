@@ -1,0 +1,983 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#d32f2f">
+    <meta name="description" content="Angry Bird - Track and manage your emotions">
+    <title>Angry Bird - Emotion Tracker</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect fill='%23d32f2f' width='180' height='180'/><circle cx='90' cy='90' r='70' fill='%23ff5252'/><circle cx='75' cy='75' r='12' fill='%23000'/><circle cx='105' cy='75' r='12' fill='%23000'/><path d='M 70 100 Q 90 110 110 100' stroke='%23000' stroke-width='3' fill='none'/></svg>">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #d32f2f;
+            --primary-dark: #b71c1c;
+            --primary-light: #ff5252;
+            --secondary: #ffd54f;
+            --neutral-dark: #1a1a1a;
+            --neutral-light: #f5f5f5;
+            --text-primary: #1a1a1a;
+            --text-secondary: #666;
+            --border: #e0e0e0;
+            --success: #4caf50;
+            --warning: #ff9800;
+        }
+
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600&display=swap');
+
+        html, body {
+            font-family: 'IBM Plex Sans', sans-serif;
+            background: var(--neutral-light);
+            color: var(--text-primary);
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            background: linear-gradient(135deg, #fff9e6 0%, #ffe0b2 100%);
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 1.5rem 1.5rem 1rem;
+            box-shadow: 0 4px 12px rgba(211, 47, 47, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -10%;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+
+        .header h1 {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 2rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .bird-icon {
+            display: inline-block;
+            font-size: 2.2rem;
+            animation: bounce 2s ease-in-out infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-8px) rotate(-5deg); }
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1.5rem;
+            padding-bottom: 80px;
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Dashboard */
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            border-left: 4px solid var(--primary);
+        }
+
+        .stat-card h3 {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.75rem;
+            font-weight: 500;
+        }
+
+        .stat-card .number {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--primary);
+        }
+
+        .insight-section {
+            grid-column: 1 / -1;
+            background: white;
+            padding: 1.5rem;
+            border-radius: 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .insight-section h2 {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 1.25rem;
+            margin-bottom: 1rem;
+            color: var(--primary);
+        }
+
+        .insight-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .insight-item:last-child {
+            border-bottom: none;
+        }
+
+        .insight-label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .insight-value {
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        /* Entry Form */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 0.85rem;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(211, 47, 47, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .emotion-selector {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .emotion-btn {
+            padding: 1rem;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            background: white;
+            cursor: pointer;
+            font-size: 2rem;
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            text-align: center;
+        }
+
+        .emotion-btn:hover {
+            border-color: var(--primary);
+            background: rgba(211, 47, 47, 0.05);
+        }
+
+        .emotion-btn.selected {
+            border-color: var(--primary);
+            background: var(--primary);
+            color: white;
+        }
+
+        .emotion-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Fredoka', sans-serif;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(211, 47, 47, 0.3);
+        }
+
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+
+        /* History */
+        .history-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .history-card {
+            background: white;
+            padding: 1.25rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            border-left: 5px solid var(--primary);
+            transition: all 0.2s;
+        }
+
+        .history-card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+        }
+
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.75rem;
+        }
+
+        .emotion-badge {
+            display: inline-block;
+            font-size: 1.5rem;
+            padding: 0.25rem 0.5rem;
+            background: rgba(211, 47, 47, 0.1);
+            border-radius: 8px;
+        }
+
+        .history-date {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .history-detail {
+            margin: 0.5rem 0;
+            font-size: 0.9rem;
+        }
+
+        .history-label {
+            color: var(--text-secondary);
+            font-weight: 600;
+            display: inline-block;
+            width: 80px;
+        }
+
+        .delete-btn {
+            background: #ffebee;
+            color: var(--primary);
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .delete-btn:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        /* Tabs Navigation */
+        .tab-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            border-top: 2px solid var(--border);
+            display: flex;
+            justify-content: space-around;
+            box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
+            z-index: 100;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 1rem;
+            border: none;
+            background: white;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.35rem;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .tab-btn:hover {
+            color: var(--primary);
+        }
+
+        .tab-btn.active {
+            color: var(--primary);
+        }
+
+        .tab-btn.active::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--primary);
+            border-radius: 0 0 4px 4px;
+        }
+
+        .tab-icon {
+            font-size: 1.5rem;
+        }
+
+        /* Floating Action Button */
+        .fab {
+            position: fixed;
+            bottom: 80px;
+            right: 1.5rem;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            font-size: 1.8rem;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(211, 47, 47, 0.3);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            z-index: 99;
+        }
+
+        .fab.show {
+            display: flex;
+        }
+
+        .fab:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 16px rgba(211, 47, 47, 0.4);
+        }
+
+        .fab:active {
+            transform: scale(0.95);
+        }
+
+        /* Empty State */
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 400px;
+            color: var(--text-secondary);
+        }
+
+        .empty-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .empty-text {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%) translateY(200px);
+            background: var(--primary);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(211, 47, 47, 0.3);
+            font-weight: 600;
+            z-index: 200;
+            transition: transform 0.3s ease;
+            pointer-events: none;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+
+            .emotion-selector {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .header h1 {
+                font-size: 1.5rem;
+            }
+
+            .stat-card .number {
+                font-size: 2rem;
+            }
+
+            .tab-nav {
+                padding-bottom: max(1rem, env(safe-area-inset-bottom));
+            }
+        }
+
+        /* Loading spinner */
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1><span class="bird-icon">🐦</span>Angry Bird</h1>
+    </div>
+
+    <div class="container">
+        <div class="content">
+            <!-- Dashboard Tab -->
+            <div class="tab-content active" id="dashboard">
+                <div class="dashboard">
+                    <div class="stat-card">
+                        <h3>Total Entries</h3>
+                        <div class="number" id="totalEntries">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>This Month</h3>
+                        <div class="number" id="monthEntries">0</div>
+                    </div>
+                    <div class="insight-section">
+                        <h2>📊 Insights</h2>
+                        <div class="insight-item">
+                            <span class="insight-label">Most Common Emotion</span>
+                            <span class="insight-value" id="commonEmotion">—</span>
+                        </div>
+                        <div class="insight-item">
+                            <span class="insight-label">Most Common Location</span>
+                            <span class="insight-value" id="commonLocation">—</span>
+                        </div>
+                        <div class="insight-item">
+                            <span class="insight-label">Most Common Root Cause</span>
+                            <span class="insight-value" id="commonCause">—</span>
+                        </div>
+                        <div class="insight-item">
+                            <span class="insight-label">Last Entry</span>
+                            <span class="insight-value" id="lastEntry">—</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Entry Form Tab -->
+            <div class="tab-content" id="entry">
+                <div style="max-width: 600px; margin: 0 auto;">
+                    <h2 style="font-family: 'Fredoka', sans-serif; margin-bottom: 1.5rem; font-size: 1.5rem;">Log Your Emotion</h2>
+                    
+                    <div class="form-group">
+                        <label>How are you feeling?</label>
+                        <div class="emotion-selector">
+                            <button class="emotion-btn" data-emotion="Angry" title="Angry">😠<span class="emotion-label">Angry</span></button>
+                            <button class="emotion-btn" data-emotion="Frustrated" title="Frustrated">😤<span class="emotion-label">Frustrated</span></button>
+                            <button class="emotion-btn" data-emotion="Stressed" title="Stressed">😟<span class="emotion-label">Stressed</span></button>
+                            <button class="emotion-btn" data-emotion="Anxious" title="Anxious">😰<span class="emotion-label">Anxious</span></button>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Date & Time</label>
+                        <input type="datetime-local" id="entryDate" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Location</label>
+                        <input type="text" id="entryLocation" placeholder="Where are you? (e.g., Office, Home)" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Root Cause</label>
+                        <textarea id="entryRootCause" placeholder="What triggered this emotion?" required></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Solution / Action</label>
+                        <textarea id="entrySolution" placeholder="How will you handle this? What's your action plan?" required></textarea>
+                    </div>
+
+                    <button class="submit-btn" id="submitBtn">Save Entry</button>
+                </div>
+            </div>
+
+            <!-- History Tab -->
+            <div class="tab-content" id="history">
+                <h2 style="font-family: 'Fredoka', sans-serif; margin-bottom: 1.5rem; font-size: 1.5rem;">Emotion History</h2>
+                <div class="history-list" id="historyList">
+                    <div class="empty-state">
+                        <div class="empty-icon">📚</div>
+                        <div class="empty-text">No entries yet</div>
+                        <div style="font-size: 0.9rem; color: var(--text-secondary);">Start logging your emotions to see them here</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Action Button -->
+    <button class="fab" id="fab">+</button>
+
+    <!-- Tab Navigation -->
+    <nav class="tab-nav">
+        <button class="tab-btn active" data-tab="dashboard">
+            <span class="tab-icon">📊</span>
+            <span>Dashboard</span>
+        </button>
+        <button class="tab-btn" data-tab="entry">
+            <span class="tab-icon">✍️</span>
+            <span>New Entry</span>
+        </button>
+        <button class="tab-btn" data-tab="history">
+            <span class="tab-icon">📖</span>
+            <span>History</span>
+        </button>
+    </nav>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.min.js"></script>
+
+    <script>
+        // ========== CONFIGURATION ==========
+        const firebaseConfig = {
+            apiKey: "AIzaSyAtgu0H9O1pj3abAOHUpM6qdrIGzw9WRYc",
+            authDomain: "angry-bird-2776f.firebaseapp.com",
+            databaseURL: "https://angry-bird-2776f-default-rtdb.firebaseio.com",
+            projectId: "angry-bird-2776f",
+            storageBucket: "angry-bird-2776f.firebasestorage.app",
+            messagingSenderId: "563008054269",
+            appId: "1:563008054269:web:6d1c0694f0e77af1b42f94"
+        };
+
+        // Initialize Firebase with fallback to localStorage
+        let db;
+        let isOnline = true;
+
+        try {
+            firebase.initializeApp(firebaseConfig);
+            db = firebase.database();
+        } catch (err) {
+            console.warn('Firebase initialization failed, using localStorage:', err);
+            isOnline = false;
+        }
+
+        // ========== STATE MANAGEMENT ==========
+        let selectedEmotion = null;
+        let entries = [];
+        let userId = localStorage.getItem('angryBirdUserId') || generateUserId();
+        localStorage.setItem('angryBirdUserId', userId);
+
+        function generateUserId() {
+            return 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        }
+
+        // ========== INITIALIZATION ==========
+        window.addEventListener('load', () => {
+            setDefaultDateTime();
+            loadEntries();
+            registerServiceWorker();
+        });
+
+        // Service Worker Registration
+        function registerServiceWorker() {
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('sw.js')
+                    .then(reg => console.log('SW registered'))
+                    .catch(err => console.log('SW registration failed:', err));
+            }
+        }
+
+        // ========== DATETIME ==========
+        function setDefaultDateTime() {
+            const now = new Date();
+            const offset = now.getTimezoneOffset();
+            const localDate = new Date(now.getTime() - offset * 60000);
+            document.getElementById('entryDate').value = localDate.toISOString().slice(0, 16);
+        }
+
+        // ========== EMOTION SELECTION ==========
+        document.querySelectorAll('.emotion-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.emotion-btn').forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+                selectedEmotion = btn.dataset.emotion;
+            });
+        });
+
+        // ========== TAB NAVIGATION ==========
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tabName = btn.dataset.tab;
+                switchTab(tabName);
+            });
+        });
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            
+            document.getElementById(tabName).classList.add('active');
+            event.target.closest('.tab-btn').classList.add('active');
+
+            if (tabName === 'dashboard') {
+                updateDashboard();
+            } else if (tabName === 'entry') {
+                document.getElementById('fab').classList.remove('show');
+            } else if (tabName === 'history') {
+                updateHistory();
+                document.getElementById('fab').classList.remove('show');
+            }
+        }
+
+        // ========== FAB BUTTON ==========
+        document.getElementById('fab').addEventListener('click', () => {
+            switchTab('entry');
+            document.querySelector('[data-tab="entry"]').click();
+            document.getElementById('fab').classList.remove('show');
+        });
+
+        // Show FAB only on dashboard
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tabName = btn.dataset.tab;
+                const fab = document.getElementById('fab');
+                if (tabName === 'dashboard') {
+                    fab.classList.add('show');
+                } else {
+                    fab.classList.remove('show');
+                }
+            });
+        });
+
+        // ========== FORM SUBMISSION ==========
+        document.getElementById('submitBtn').addEventListener('click', saveEntry);
+
+        function saveEntry() {
+            if (!selectedEmotion) {
+                showToast('Please select an emotion');
+                return;
+            }
+
+            const date = document.getElementById('entryDate').value;
+            const location = document.getElementById('entryLocation').value.trim();
+            const rootCause = document.getElementById('entryRootCause').value.trim();
+            const solution = document.getElementById('entrySolution').value.trim();
+
+            if (!date || !location || !rootCause || !solution) {
+                showToast('Please fill all fields');
+                return;
+            }
+
+            const entry = {
+                id: Date.now().toString(),
+                emotion: selectedEmotion,
+                date: date,
+                location: location,
+                rootCause: rootCause,
+                solution: solution,
+                timestamp: Date.now()
+            };
+
+            if (isOnline && db) {
+                db.ref(`users/${userId}/entries/${entry.id}`).set(entry, (err) => {
+                    if (err) {
+                        console.log('Firebase write failed, using localStorage');
+                        saveToLocalStorage(entry);
+                    } else {
+                        saveToLocalStorage(entry);
+                        clearForm();
+                        showToast('Entry saved! 🎉');
+                        loadEntries();
+                    }
+                });
+            } else {
+                saveToLocalStorage(entry);
+                clearForm();
+                showToast('Entry saved locally! 🎉');
+                loadEntries();
+            }
+        }
+
+        function saveToLocalStorage(entry) {
+            const stored = JSON.parse(localStorage.getItem('angryBirdEntries') || '[]');
+            stored.push(entry);
+            localStorage.setItem('angryBirdEntries', JSON.stringify(stored));
+        }
+
+        function clearForm() {
+            selectedEmotion = null;
+            document.querySelectorAll('.emotion-btn').forEach(b => b.classList.remove('selected'));
+            document.getElementById('entryLocation').value = '';
+            document.getElementById('entryRootCause').value = '';
+            document.getElementById('entrySolution').value = '';
+            setDefaultDateTime();
+        }
+
+        // ========== DATA LOADING ==========
+        function loadEntries() {
+            const stored = JSON.parse(localStorage.getItem('angryBirdEntries') || '[]');
+            entries = stored.sort((a, b) => b.timestamp - a.timestamp);
+
+            if (isOnline && db) {
+                db.ref(`users/${userId}/entries`).on('value', (snap) => {
+                    const firebaseEntries = [];
+                    snap.forEach(child => {
+                        firebaseEntries.push(child.val());
+                    });
+                    entries = [...firebaseEntries, ...stored].reduce((acc, entry) => {
+                        if (!acc.find(e => e.id === entry.id)) {
+                            acc.push(entry);
+                        }
+                        return acc;
+                    }, []);
+                    entries.sort((a, b) => b.timestamp - a.timestamp);
+                    updateDashboard();
+                    updateHistory();
+                });
+            } else {
+                updateDashboard();
+                updateHistory();
+            }
+        }
+
+        // ========== DASHBOARD UPDATE ==========
+        function updateDashboard() {
+            const total = entries.length;
+            const thisMonth = entries.filter(e => {
+                const entryDate = new Date(e.date);
+                const now = new Date();
+                return entryDate.getMonth() === now.getMonth() && 
+                       entryDate.getFullYear() === now.getFullYear();
+            }).length;
+
+            document.getElementById('totalEntries').textContent = total;
+            document.getElementById('monthEntries').textContent = thisMonth;
+
+            // Most common emotion
+            const emotionCounts = {};
+            entries.forEach(e => {
+                emotionCounts[e.emotion] = (emotionCounts[e.emotion] || 0) + 1;
+            });
+            const commonEmotion = Object.keys(emotionCounts).length > 0
+                ? Object.entries(emotionCounts).reduce((a, b) => a[1] > b[1] ? a : b)[0]
+                : '—';
+            document.getElementById('commonEmotion').textContent = commonEmotion;
+
+            // Most common location
+            const locationCounts = {};
+            entries.forEach(e => {
+                locationCounts[e.location] = (locationCounts[e.location] || 0) + 1;
+            });
+            const commonLocation = Object.keys(locationCounts).length > 0
+                ? Object.entries(locationCounts).reduce((a, b) => a[1] > b[1] ? a : b)[0]
+                : '—';
+            document.getElementById('commonLocation').textContent = commonLocation;
+
+            // Most common root cause
+            const causeCounts = {};
+            entries.forEach(e => {
+                const cause = e.rootCause.split(' ')[0];
+                causeCounts[cause] = (causeCounts[cause] || 0) + 1;
+            });
+            const commonCause = Object.keys(causeCounts).length > 0
+                ? Object.entries(causeCounts).reduce((a, b) => a[1] > b[1] ? a : b)[0]
+                : '—';
+            document.getElementById('commonCause').textContent = commonCause;
+
+            // Last entry
+            const lastEntry = entries.length > 0
+                ? new Date(entries[0].date).toLocaleDateString('en-US', { 
+                    month: 'short', 
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  })
+                : '—';
+            document.getElementById('lastEntry').textContent = lastEntry;
+        }
+
+        // ========== HISTORY UPDATE ==========
+        function updateHistory() {
+            const historyList = document.getElementById('historyList');
+            
+            if (entries.length === 0) {
+                historyList.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">📚</div>
+                        <div class="empty-text">No entries yet</div>
+                        <div style="font-size: 0.9rem; color: var(--text-secondary);">Start logging your emotions to see them here</div>
+                    </div>
+                `;
+                return;
+            }
+
+            historyList.innerHTML = entries.map(entry => {
+                const entryDate = new Date(entry.date);
+                const formattedDate = entryDate.toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+
+                const emotionEmoji = {
+                    'Angry': '😠',
+                    'Frustrated': '😤',
+                    'Stressed': '😟',
+                    'Anxious': '😰'
+                }[entry.emotion] || '😐';
+
+                return `
+                    <div class="history-card">
+                        <div class="history-header">
+                            <div>
+                                <span class="emotion-badge">${emotionEmoji}</span>
+                                <span class="history-date">${formattedDate}</span>
+                            </div>
+                            <button class="delete-btn" onclick="deleteEntry('${entry.id}')">Delete</button>
+                        </div>
+                        <div class="history-detail">
+                            <span class="history-label">Emotion:</span> ${entry.emotion}
+                        </div>
+                        <div class="history-detail">
+                            <span class="history-label">Location:</span> ${entry.location}
+                        </div>
+                        <div class="history-detail">
+                            <span class="history-label">Cause:</span> ${entry.rootCause}
+                        </div>
+                        <div class="history-detail">
+                            <span class="history-label">Solution:</span> ${entry.solution}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // ========== DELETE ENTRY ==========
+        function deleteEntry(entryId) {
+            if (!confirm('Delete this entry?')) return;
+
+            const stored = JSON.parse(localStorage.getItem('angryBirdEntries') || '[]');
+            const filtered = stored.filter(e => e.id !== entryId);
+            localStorage.setItem('angryBirdEntries', JSON.stringify(filtered));
+
+            if (isOnline && db) {
+                db.ref(`users/${userId}/entries/${entryId}`).remove();
+            }
+
+            loadEntries();
+            showToast('Entry deleted');
+        }
+
+        // ========== TOAST NOTIFICATION ==========
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+    </script>
+</body>
+</html>

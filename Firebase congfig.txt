@@ -1,0 +1,7 @@
+ apiKey: "AIzaSyAtgu0H9O1pj3abAOHUpM6qdrIGzw9WRYc",
+  authDomain: "angry-bird-2776f.firebaseapp.com",
+  projectId: "angry-bird-2776f",
+  storageBucket: "angry-bird-2776f.firebasestorage.app",
+  messagingSenderId: "563008054269",
+  appId: "1:563008054269:web:6d1c0694f0e77af1b42f94",
+  measurementId: "G-W1YM4FH48R"
