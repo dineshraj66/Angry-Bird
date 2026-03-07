@@ -36,14 +36,14 @@
       "name": "New Emotion Entry",
       "short_name": "New Entry",
       "description": "Quickly log your current emotion",
-      "url": "/index.html?tab=entry",
+      "url": "./index.html?tab=entry",
       "icons": [{ "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'><rect fill='%23d32f2f' width='96' height='96' rx='20'/><text x='48' y='60' font-size='40' text-anchor='middle' dominant-baseline='middle'>✍️</text></svg>", "sizes": "96x96", "type": "image/svg+xml" }]
     },
     {
       "name": "View History",
       "short_name": "History",
       "description": "Check your emotion history",
-      "url": "/index.html?tab=history",
+      "url": "./index.html?tab=history",
       "icons": [{ "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'><rect fill='%23d32f2f' width='96' height='96' rx='20'/><text x='48' y='60' font-size='40' text-anchor='middle' dominant-baseline='middle'>📖</text></svg>", "sizes": "96x96", "type": "image/svg+xml" }]
     }
   ],

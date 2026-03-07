@@ -635,6 +635,17 @@
     <!-- Toast -->
     <div class="toast" id="toast"></div>
 
+    <!-- Debug Panel (Hidden by default) -->
+    <div id="debugPanel" style="position: fixed; bottom: 80px; left: 0; right: 0; background: #1a1a1a; color: #00ff00; padding: 1rem; font-family: monospace; font-size: 0.8rem; max-height: 200px; overflow-y: auto; display: none; z-index: 150; border-top: 2px solid #00ff00;">
+        <div style="margin-bottom: 0.5rem; font-weight: bold;">🐛 DEBUG INFO</div>
+        <div>User ID: <span id="debugUserId">—</span></div>
+        <div>Firebase: <span id="debugFirebase">—</span></div>
+        <div>Local Entries: <span id="debugLocal">—</span></div>
+        <div>Cloud Entries: <span id="debugCloud">—</span></div>
+        <div>Status: <span id="debugStatus">—</span></div>
+        <div style="margin-top: 0.5rem; font-size: 0.7rem; color: #aaa;">Tap 3 times on header to toggle debug panel</div>
+    </div>
+
     <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.min.js"></script>
@@ -656,26 +667,48 @@
         let db;
         let isOnline = true;
 
-        try {
-            firebase.initializeApp(firebaseConfig);
-            db = firebase.database();
-            console.log('Firebase initialized successfully');
-            
-            // Check Firebase connection
-            db.ref('.info/connected').on('value', function(snapshot) {
-                if (snapshot.val() === true) {
-                    console.log('Firebase connected');
-                    isOnline = true;
-                    loadEntries(); // Refresh from Firebase when reconnected
-                } else {
-                    console.log('Firebase disconnected');
+        function initializeFirebase() {
+            try {
+                if (typeof firebase === 'undefined') {
+                    console.error('❌ Firebase SDK not loaded');
                     isOnline = false;
+                    return;
                 }
-            });
-        } catch (err) {
-            console.error('Firebase initialization error:', err);
-            isOnline = false;
-            showToast('Firebase connection failed - using local storage');
+                
+                // Check if already initialized
+                if (firebase.apps && firebase.apps.length > 0) {
+                    console.log('Firebase already initialized');
+                    db = firebase.database();
+                    return;
+                }
+                
+                firebase.initializeApp(firebaseConfig);
+                db = firebase.database();
+                console.log('✅ Firebase initialized successfully');
+                
+                // Check Firebase connection
+                db.ref('.info/connected').on('value', function(snapshot) {
+                    if (snapshot.val() === true) {
+                        console.log('🟢 Firebase connected');
+                        isOnline = true;
+                        loadEntries(); // Refresh from Firebase when reconnected
+                    } else {
+                        console.log('🔴 Firebase disconnected');
+                        isOnline = false;
+                    }
+                });
+            } catch (err) {
+                console.error('❌ Firebase initialization error:', err);
+                isOnline = false;
+                showToast('Firebase connection failed - using local storage');
+            }
+        }
+
+        // Initialize Firebase when page loads
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeFirebase);
+        } else {
+            initializeFirebase();
         }
 
         // ========== STATE MANAGEMENT ==========
@@ -690,9 +723,20 @@
 
         // ========== INITIALIZATION ==========
         window.addEventListener('load', () => {
-            setDefaultDateTime();
-            loadEntries();
-            registerServiceWorker();
+            // Small delay to ensure Firebase scripts are fully loaded
+            setTimeout(() => {
+                setDefaultDateTime();
+                loadEntries();
+                registerServiceWorker();
+                setupDebugPanel();
+                // Diagnostic logging
+                console.log('=== ANGRY BIRD DIAGNOSTICS ===');
+                console.log('User ID:', userId);
+                console.log('Firebase Config:', firebaseConfig.projectId);
+                console.log('Is Online:', isOnline);
+                console.log('DB Available:', !!db);
+                console.log('=== END DIAGNOSTICS ===');
+            }, 100);
         });
 
         // Service Worker Registration
@@ -702,6 +746,29 @@
                     .then(reg => console.log('SW registered'))
                     .catch(err => console.log('SW registration failed:', err));
             }
+        }
+
+        // ========== DEBUG PANEL ==========
+        let debugTaps = 0;
+        function setupDebugPanel() {
+            document.querySelector('.header h1').addEventListener('click', () => {
+                debugTaps++;
+                if (debugTaps === 3) {
+                    const panel = document.getElementById('debugPanel');
+                    panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+                    debugTaps = 0;
+                    updateDebugInfo();
+                }
+            });
+        }
+
+        function updateDebugInfo() {
+            const stored = JSON.parse(localStorage.getItem('angryBirdEntries') || '[]');
+            document.getElementById('debugUserId').textContent = userId;
+            document.getElementById('debugFirebase').textContent = isOnline ? '✅ Connected' : '❌ Offline';
+            document.getElementById('debugLocal').textContent = stored.length;
+            document.getElementById('debugCloud').textContent = entries.length;
+            document.getElementById('debugStatus').textContent = db ? 'DB Ready' : 'No DB';
         }
 
         // ========== DATETIME ==========
@@ -795,22 +862,28 @@
                 timestamp: Date.now()
             };
 
+            console.log('💾 Saving entry:', entry);
+
             // Save to localStorage first
             saveToLocalStorage(entry);
 
             if (isOnline && db) {
+                console.log('🔥 Pushing to Firebase...');
                 db.ref(`users/${userId}/entries/${entry.id}`).set(entry)
                     .then(() => {
-                        console.log('Entry saved to Firebase:', entry.id);
+                        console.log('✅ Entry saved to Firebase:', entry.id);
                         clearForm();
                         showToast('Entry saved! 🎉');
                         loadEntries();
                     })
                     .catch((err) => {
-                        console.error('Firebase write error:', err);
+                        console.error('❌ Firebase write error:', err);
+                        console.error('Error code:', err.code);
+                        console.error('Error message:', err.message);
                         showToast('Saved locally (Firebase sync failed)');
                     });
             } else {
+                console.log('⚠️ Firebase not available, saved to localStorage only');
                 clearForm();
                 showToast('Entry saved locally! 🎉');
                 loadEntries();
@@ -834,34 +907,45 @@
 
         // ========== DATA LOADING ==========
         function loadEntries() {
+            console.log('📥 loadEntries called');
             const stored = JSON.parse(localStorage.getItem('angryBirdEntries') || '[]');
+            console.log('📦 Local entries:', stored.length);
             entries = stored.sort((a, b) => b.timestamp - a.timestamp);
 
             if (isOnline && db) {
+                console.log('🔥 Loading from Firebase...');
                 db.ref(`users/${userId}/entries`).on('value', (snap) => {
                     const firebaseEntries = [];
                     snap.forEach(child => {
                         firebaseEntries.push(child.val());
                     });
-                    console.log('Firebase entries loaded:', firebaseEntries.length);
+                    console.log('✅ Firebase entries loaded:', firebaseEntries.length);
+                    console.log('Firebase data:', firebaseEntries);
                     
                     // Merge Firebase and local entries (Firebase is source of truth)
                     entries = firebaseEntries.sort((a, b) => b.timestamp - a.timestamp);
                     
                     // Update local storage with Firebase data
                     localStorage.setItem('angryBirdEntries', JSON.stringify(entries));
+                    console.log('💾 Updated localStorage with Firebase data');
                     
                     updateDashboard();
                     updateHistory();
+                    updateDebugInfo();
                 }, (error) => {
-                    console.error('Firebase read error:', error);
+                    console.error('❌ Firebase read error:', error);
+                    console.error('Error code:', error.code);
+                    console.error('Error message:', error.message);
                     // Fall back to local storage
                     updateDashboard();
                     updateHistory();
+                    updateDebugInfo();
                 });
             } else {
+                console.log('⚠️ Firebase not available, using localStorage only');
                 updateDashboard();
                 updateHistory();
+                updateDebugInfo();
             }
         }
 
