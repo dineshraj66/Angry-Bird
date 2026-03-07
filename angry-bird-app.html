@@ -646,9 +646,9 @@
         <div style="margin-top: 0.5rem; font-size: 0.7rem; color: #aaa;">Tap 3 times on header to toggle debug panel</div>
     </div>
 
-    <!-- Firebase Scripts - using CDN with fallback -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.min.js" async></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.min.js" async></script>
+    <!-- Firebase Scripts - Load synchronously FIRST -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.min.js"></script>
 
     <script>
         // ========== CONFIGURATION ==========
@@ -667,44 +667,32 @@
         let isOnline = true;
 
         function initializeFirebase() {
-            console.log('🔄 Checking Firebase SDK...');
+            console.log('🔄 Initializing Firebase...');
             
-            // Wait up to 5 seconds for Firebase to load
-            let attempts = 0;
-            const maxAttempts = 50; // 50 * 100ms = 5 seconds
-            
-            const tryInit = setInterval(() => {
-                attempts++;
-                
-                if (typeof firebase !== 'undefined') {
-                    clearInterval(tryInit);
-                    console.log('✅ Firebase SDK detected after', attempts * 100, 'ms');
-                    
-                    try {
-                        // Check if already initialized
-                        if (firebase.apps && firebase.apps.length > 0) {
-                            console.log('Firebase already initialized');
-                            db = firebase.database();
-                            setupFirebaseListeners();
-                            return;
-                        }
-                        
-                        firebase.initializeApp(firebaseConfig);
-                        db = firebase.database();
-                        console.log('✅ Firebase initialized successfully');
-                        setupFirebaseListeners();
-                    } catch (err) {
-                        console.error('❌ Firebase initialization error:', err.message);
-                        isOnline = false;
-                    }
-                } else if (attempts >= maxAttempts) {
-                    clearInterval(tryInit);
-                    console.error('❌ Firebase SDK failed to load after 5 seconds');
-                    console.log('⚠️ Using localStorage only');
-                    isOnline = false;
-                    showToast('Firebase unavailable - using local storage');
+            try {
+                if (typeof firebase === 'undefined') {
+                    throw new Error('Firebase SDK not loaded');
                 }
-            }, 100);
+                
+                console.log('✅ Firebase SDK available');
+                
+                // Check if already initialized
+                if (firebase.apps && firebase.apps.length > 0) {
+                    console.log('✅ Firebase already initialized');
+                    db = firebase.database();
+                } else {
+                    firebase.initializeApp(firebaseConfig);
+                    db = firebase.database();
+                    console.log('✅ Firebase initialized successfully');
+                }
+                
+                setupFirebaseListeners();
+                
+            } catch (err) {
+                console.error('❌ Firebase error:', err.message);
+                isOnline = false;
+                // Still allow app to work with localStorage
+            }
         }
         
         function setupFirebaseListeners() {
