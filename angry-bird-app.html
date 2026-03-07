@@ -646,12 +646,13 @@
         <div style="margin-top: 0.5rem; font-size: 0.7rem; color: #aaa;">Tap 3 times on header to toggle debug panel</div>
     </div>
 
-    <!-- Firebase Scripts - Load synchronously FIRST -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.min.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.min.js"></script>
+    <!-- Firebase SDK - Compat version (easier) -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
 
     <script>
-        // ========== CONFIGURATION ==========
+        // ========== FIREBASE CONFIGURATION ==========
         const firebaseConfig = {
             apiKey: "AIzaSyAtgu0H9O1pj3abAOHUpM6qdrIGzw9WRYc",
             authDomain: "angry-bird-2776f.firebaseapp.com",
@@ -662,56 +663,47 @@
             appId: "1:563008054269:web:6d1c0694f0e77af1b42f94"
         };
 
-        // Initialize Firebase with fallback to localStorage
         let db;
-        let isOnline = true;
+        let auth;
+        let isOnline = false;
+        let currentUserId = 'shared-user';
 
-        function initializeFirebase() {
+        async function initializeFirebase() {
             console.log('🔄 Initializing Firebase...');
-            
             try {
-                if (typeof firebase === 'undefined') {
-                    throw new Error('Firebase SDK not loaded');
-                }
+                // Initialize Firebase
+                firebase.initializeApp(firebaseConfig);
+                console.log('✅ Firebase App initialized');
                 
-                console.log('✅ Firebase SDK available');
-                
-                // Check if already initialized
-                if (firebase.apps && firebase.apps.length > 0) {
-                    console.log('✅ Firebase already initialized');
-                    db = firebase.database();
-                } else {
-                    firebase.initializeApp(firebaseConfig);
-                    db = firebase.database();
-                    console.log('✅ Firebase initialized successfully');
-                }
-                
-                setupFirebaseListeners();
-                
-            } catch (err) {
-                console.error('❌ Firebase error:', err.message);
-                isOnline = false;
-                // Still allow app to work with localStorage
-            }
-        }
-        
-        function setupFirebaseListeners() {
-            if (!db) return;
-            
-            try {
-                db.ref('.info/connected').on('value', function(snapshot) {
-                    if (snapshot.val() === true) {
+                db = firebase.database();
+                auth = firebase.auth();
+                console.log('✅ Database & Auth ready');
+
+                // Sign in anonymously
+                const result = await auth.signInAnonymously();
+                console.log('✅ Anonymous auth successful:', result.user.uid);
+                currentUserId = result.user.uid;
+
+                // Check connection status
+                db.ref('.info/connected').on('value', (snap) => {
+                    if (snap.val() === true) {
                         console.log('🟢 Firebase database connected');
                         isOnline = true;
+                        updateDebugInfo();
                     } else {
                         console.log('🔴 Firebase database disconnected');
                         isOnline = false;
+                        updateDebugInfo();
                     }
-                    updateDebugInfo();
                 });
-                console.log('✅ Firebase listeners setup complete');
-            } catch (err) {
-                console.error('Error setting up Firebase listeners:', err);
+
+                console.log('✅ Firebase fully initialized!');
+                return true;
+
+            } catch (error) {
+                console.error('❌ Firebase error:', error.message);
+                showToast('Firebase connection failed: ' + error.message);
+                return false;
             }
         }
 
@@ -733,26 +725,30 @@
         }
 
         // ========== INITIALIZATION ==========
-        window.addEventListener('load', () => {
-            console.log('📱 App loaded, initializing...');
+        window.addEventListener('load', async () => {
+            console.log('📱 App loading...');
             setDefaultDateTime();
             setupDebugPanel();
             registerServiceWorker();
             
             // Initialize Firebase
-            initializeFirebase();
+            const fbReady = await initializeFirebase();
             
-            // Load entries after a brief delay to let Firebase initialize
-            setTimeout(() => {
+            if (fbReady) {
+                console.log('🟢 Firebase ready, loading data...');
                 loadEntries();
-                // Diagnostic logging
-                console.log('=== ANGRY BIRD DIAGNOSTICS ===');
-                console.log('User ID:', userId);
-                console.log('Firebase Config Project:', firebaseConfig.projectId);
-                console.log('Is Online:', isOnline);
-                console.log('DB Available:', !!db);
-                console.log('=== END DIAGNOSTICS ===');
-            }, 500);
+            } else {
+                console.log('❌ Firebase failed to initialize');
+                showToast('Cannot connect to Firebase. Make sure you have internet.');
+            }
+            
+            // Log diagnostics
+            console.log('=== ANGRY BIRD DIAGNOSTICS ===');
+            console.log('User ID:', currentUserId);
+            console.log('Firebase Project:', firebaseConfig.projectId);
+            console.log('Is Online:', isOnline);
+            console.log('DB Available:', !!db);
+            console.log('=== END DIAGNOSTICS ===');
         });
 
         // Service Worker Registration
@@ -779,12 +775,11 @@
         }
 
         function updateDebugInfo() {
-            const stored = JSON.parse(localStorage.getItem('angryBirdEntries') || '[]');
-            document.getElementById('debugUserId').textContent = userId;
-            document.getElementById('debugFirebase').textContent = isOnline ? '✅ Connected' : '❌ Offline';
-            document.getElementById('debugLocal').textContent = stored.length;
+            document.getElementById('debugUserId').textContent = currentUserId;
+            document.getElementById('debugFirebase').textContent = isOnline ? '🟢 Connected' : '🔴 Offline';
+            document.getElementById('debugLocal').textContent = 'N/A (Cloud)';
             document.getElementById('debugCloud').textContent = entries.length;
-            document.getElementById('debugStatus').textContent = db ? 'DB Ready' : 'No DB';
+            document.getElementById('debugStatus').textContent = db ? '✅ Online Mode' : '❌ Offline';
         }
 
         // ========== DATETIME ==========
@@ -879,40 +874,32 @@
             };
 
             console.log('💾 Saving entry:', entry);
-            console.log('isOnline:', isOnline, 'db:', !!db);
 
-            // Save to localStorage first
-            saveToLocalStorage(entry);
-            console.log('✅ Saved to localStorage');
-
-            if (isOnline && db) {
-                console.log('🔥 Attempting Firebase write...');
-                const path = `users/${userId}/entries/${entry.id}`;
-                console.log('📍 Path:', path);
-                
-                db.ref(path).set(entry)
-                    .then(() => {
-                        console.log('✅ Entry saved to Firebase:', entry.id);
-                        clearForm();
-                        showToast('Entry saved! 🎉');
-                        setTimeout(() => loadEntries(), 500);
-                    })
-                    .catch((err) => {
-                        console.error('❌ Firebase write error:', err);
-                        console.error('Error code:', err.code);
-                        console.error('Error message:', err.message);
-                        showToast('Saved locally (Firebase sync failed)');
-                    });
-            } else {
-                console.log('⚠️ Firebase not available, saved to localStorage only');
-                console.log('isOnline:', isOnline, 'db:', !!db);
-                clearForm();
-                showToast('Entry saved locally');
-                loadEntries();
+            if (!db || !isOnline) {
+                console.error('❌ Firebase not available');
+                showToast('No internet connection. Cannot save.');
+                return;
             }
+
+            // Save to Firebase
+            const path = `users/${currentUserId}/entries/${entry.id}`;
+            console.log('📍 Saving to:', path);
+
+            db.ref(path).set(entry)
+                .then(() => {
+                    console.log('✅ Entry saved to Firebase:', entry.id);
+                    clearForm();
+                    showToast('Entry saved! 🎉');
+                    setTimeout(() => loadEntries(), 500);
+                })
+                .catch((err) => {
+                    console.error('❌ Save error:', err.message);
+                    showToast('Error saving: ' + err.message);
+                });
         }
 
         function saveToLocalStorage(entry) {
+            // Not used in online mode, but kept for compatibility
             const stored = JSON.parse(localStorage.getItem('angryBirdEntries') || '[]');
             stored.push(entry);
             localStorage.setItem('angryBirdEntries', JSON.stringify(stored));
@@ -929,46 +916,35 @@
 
         // ========== DATA LOADING ==========
         function loadEntries() {
-            console.log('📥 loadEntries called');
-            const stored = JSON.parse(localStorage.getItem('angryBirdEntries') || '[]');
-            console.log('📦 Local entries:', stored.length);
-            entries = stored.sort((a, b) => b.timestamp - a.timestamp);
+            console.log('📥 Loading entries from Firebase...');
 
-            if (isOnline && db) {
-                console.log('🔥 Loading from Firebase...');
-                db.ref(`users/${userId}/entries`).on('value', (snap) => {
-                    const firebaseEntries = [];
-                    snap.forEach(child => {
-                        firebaseEntries.push(child.val());
-                    });
-                    console.log('✅ Firebase entries loaded:', firebaseEntries.length);
-                    console.log('Firebase data:', firebaseEntries);
-                    
-                    // Merge Firebase and local entries (Firebase is source of truth)
-                    entries = firebaseEntries.sort((a, b) => b.timestamp - a.timestamp);
-                    
-                    // Update local storage with Firebase data
-                    localStorage.setItem('angryBirdEntries', JSON.stringify(entries));
-                    console.log('💾 Updated localStorage with Firebase data');
-                    
-                    updateDashboard();
-                    updateHistory();
-                    updateDebugInfo();
-                }, (error) => {
-                    console.error('❌ Firebase read error:', error);
-                    console.error('Error code:', error.code);
-                    console.error('Error message:', error.message);
-                    // Fall back to local storage
-                    updateDashboard();
-                    updateHistory();
-                    updateDebugInfo();
+            if (!db || !isOnline) {
+                console.log('⚠️ Firebase not available');
+                entries = [];
+                updateDashboard();
+                updateHistory();
+                return;
+            }
+
+            const path = `users/${currentUserId}/entries`;
+            console.log('📍 Loading from:', path);
+
+            db.ref(path).on('value', (snap) => {
+                const firebaseEntries = [];
+                snap.forEach(child => {
+                    firebaseEntries.push(child.val());
                 });
-            } else {
-                console.log('⚠️ Firebase not available, using localStorage only');
+                console.log('✅ Entries loaded:', firebaseEntries.length);
+                
+                entries = firebaseEntries.sort((a, b) => b.timestamp - a.timestamp);
+                
                 updateDashboard();
                 updateHistory();
                 updateDebugInfo();
-            }
+            }, (error) => {
+                console.error('❌ Load error:', error.message);
+                showToast('Error loading entries: ' + error.message);
+            });
         }
 
         // ========== DASHBOARD UPDATE ==========
@@ -1089,26 +1065,27 @@
         function deleteEntry(entryId) {
             if (!confirm('Delete this entry?')) return;
 
-            const stored = JSON.parse(localStorage.getItem('angryBirdEntries') || '[]');
-            const filtered = stored.filter(e => e.id !== entryId);
-            localStorage.setItem('angryBirdEntries', JSON.stringify(filtered));
+            console.log('🗑️ Deleting entry:', entryId);
 
-            if (isOnline && db) {
-                db.ref(`users/${userId}/entries/${entryId}`).remove()
-                    .then(() => {
-                        console.log('Entry deleted from Firebase:', entryId);
-                        loadEntries();
-                        showToast('Entry deleted');
-                    })
-                    .catch((err) => {
-                        console.error('Firebase delete error:', err);
-                        loadEntries();
-                        showToast('Deleted locally (sync may have failed)');
-                    });
-            } else {
-                loadEntries();
-                showToast('Entry deleted');
+            if (!db || !isOnline) {
+                console.error('❌ Firebase not available');
+                showToast('No internet connection. Cannot delete.');
+                return;
             }
+
+            const path = `users/${currentUserId}/entries/${entryId}`;
+            console.log('📍 Deleting from:', path);
+
+            db.ref(path).remove()
+                .then(() => {
+                    console.log('✅ Entry deleted from Firebase');
+                    loadEntries();
+                    showToast('Entry deleted');
+                })
+                .catch((err) => {
+                    console.error('❌ Delete error:', err.message);
+                    showToast('Error deleting: ' + err.message);
+                });
         }
 
         // ========== TOAST NOTIFICATION ==========
