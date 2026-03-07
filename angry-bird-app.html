@@ -646,10 +646,9 @@
         <div style="margin-top: 0.5rem; font-size: 0.7rem; color: #aaa;">Tap 3 times on header to toggle debug panel</div>
     </div>
 
-    <!-- Firebase -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.min.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.min.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.min.js"></script>
+    <!-- Firebase Scripts - using CDN with fallback -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.min.js" async></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.min.js" async></script>
 
     <script>
         // ========== CONFIGURATION ==========
@@ -668,39 +667,63 @@
         let isOnline = true;
 
         function initializeFirebase() {
-            try {
-                if (typeof firebase === 'undefined') {
-                    console.error('❌ Firebase SDK not loaded');
-                    isOnline = false;
-                    return;
-                }
+            console.log('🔄 Checking Firebase SDK...');
+            
+            // Wait up to 5 seconds for Firebase to load
+            let attempts = 0;
+            const maxAttempts = 50; // 50 * 100ms = 5 seconds
+            
+            const tryInit = setInterval(() => {
+                attempts++;
                 
-                // Check if already initialized
-                if (firebase.apps && firebase.apps.length > 0) {
-                    console.log('Firebase already initialized');
-                    db = firebase.database();
-                    return;
-                }
-                
-                firebase.initializeApp(firebaseConfig);
-                db = firebase.database();
-                console.log('✅ Firebase initialized successfully');
-                
-                // Check Firebase connection
-                db.ref('.info/connected').on('value', function(snapshot) {
-                    if (snapshot.val() === true) {
-                        console.log('🟢 Firebase connected');
-                        isOnline = true;
-                        loadEntries(); // Refresh from Firebase when reconnected
-                    } else {
-                        console.log('🔴 Firebase disconnected');
+                if (typeof firebase !== 'undefined') {
+                    clearInterval(tryInit);
+                    console.log('✅ Firebase SDK detected after', attempts * 100, 'ms');
+                    
+                    try {
+                        // Check if already initialized
+                        if (firebase.apps && firebase.apps.length > 0) {
+                            console.log('Firebase already initialized');
+                            db = firebase.database();
+                            setupFirebaseListeners();
+                            return;
+                        }
+                        
+                        firebase.initializeApp(firebaseConfig);
+                        db = firebase.database();
+                        console.log('✅ Firebase initialized successfully');
+                        setupFirebaseListeners();
+                    } catch (err) {
+                        console.error('❌ Firebase initialization error:', err.message);
                         isOnline = false;
                     }
+                } else if (attempts >= maxAttempts) {
+                    clearInterval(tryInit);
+                    console.error('❌ Firebase SDK failed to load after 5 seconds');
+                    console.log('⚠️ Using localStorage only');
+                    isOnline = false;
+                    showToast('Firebase unavailable - using local storage');
+                }
+            }, 100);
+        }
+        
+        function setupFirebaseListeners() {
+            if (!db) return;
+            
+            try {
+                db.ref('.info/connected').on('value', function(snapshot) {
+                    if (snapshot.val() === true) {
+                        console.log('🟢 Firebase database connected');
+                        isOnline = true;
+                    } else {
+                        console.log('🔴 Firebase database disconnected');
+                        isOnline = false;
+                    }
+                    updateDebugInfo();
                 });
+                console.log('✅ Firebase listeners setup complete');
             } catch (err) {
-                console.error('❌ Firebase initialization error:', err);
-                isOnline = false;
-                showToast('Firebase connection failed - using local storage');
+                console.error('Error setting up Firebase listeners:', err);
             }
         }
 
@@ -723,20 +746,25 @@
 
         // ========== INITIALIZATION ==========
         window.addEventListener('load', () => {
-            // Small delay to ensure Firebase scripts are fully loaded
+            console.log('📱 App loaded, initializing...');
+            setDefaultDateTime();
+            setupDebugPanel();
+            registerServiceWorker();
+            
+            // Initialize Firebase
+            initializeFirebase();
+            
+            // Load entries after a brief delay to let Firebase initialize
             setTimeout(() => {
-                setDefaultDateTime();
                 loadEntries();
-                registerServiceWorker();
-                setupDebugPanel();
                 // Diagnostic logging
                 console.log('=== ANGRY BIRD DIAGNOSTICS ===');
                 console.log('User ID:', userId);
-                console.log('Firebase Config:', firebaseConfig.projectId);
+                console.log('Firebase Config Project:', firebaseConfig.projectId);
                 console.log('Is Online:', isOnline);
                 console.log('DB Available:', !!db);
                 console.log('=== END DIAGNOSTICS ===');
-            }, 100);
+            }, 500);
         });
 
         // Service Worker Registration
@@ -863,18 +891,23 @@
             };
 
             console.log('💾 Saving entry:', entry);
+            console.log('isOnline:', isOnline, 'db:', !!db);
 
             // Save to localStorage first
             saveToLocalStorage(entry);
+            console.log('✅ Saved to localStorage');
 
             if (isOnline && db) {
-                console.log('🔥 Pushing to Firebase...');
-                db.ref(`users/${userId}/entries/${entry.id}`).set(entry)
+                console.log('🔥 Attempting Firebase write...');
+                const path = `users/${userId}/entries/${entry.id}`;
+                console.log('📍 Path:', path);
+                
+                db.ref(path).set(entry)
                     .then(() => {
                         console.log('✅ Entry saved to Firebase:', entry.id);
                         clearForm();
                         showToast('Entry saved! 🎉');
-                        loadEntries();
+                        setTimeout(() => loadEntries(), 500);
                     })
                     .catch((err) => {
                         console.error('❌ Firebase write error:', err);
@@ -884,8 +917,9 @@
                     });
             } else {
                 console.log('⚠️ Firebase not available, saved to localStorage only');
+                console.log('isOnline:', isOnline, 'db:', !!db);
                 clearForm();
-                showToast('Entry saved locally! 🎉');
+                showToast('Entry saved locally');
                 loadEntries();
             }
         }
