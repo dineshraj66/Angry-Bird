@@ -649,7 +649,6 @@
     <!-- Firebase SDK - Compat version (easier) -->
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-database-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
 
     <script>
         // ========== FIREBASE CONFIGURATION ==========
@@ -664,9 +663,8 @@
         };
 
         let db;
-        let auth;
         let isOnline = false;
-        let currentUserId = 'shared-user';
+        let currentUserId = 'shared-user'; // Use fixed ID for shared database
 
         async function initializeFirebase() {
             console.log('🔄 Initializing Firebase...');
@@ -676,13 +674,7 @@
                 console.log('✅ Firebase App initialized');
                 
                 db = firebase.database();
-                auth = firebase.auth();
-                console.log('✅ Database & Auth ready');
-
-                // Sign in anonymously
-                const result = await auth.signInAnonymously();
-                console.log('✅ Anonymous auth successful:', result.user.uid);
-                currentUserId = result.user.uid;
+                console.log('✅ Database ready');
 
                 // Check connection status
                 db.ref('.info/connected').on('value', (snap) => {
@@ -702,7 +694,7 @@
 
             } catch (error) {
                 console.error('❌ Firebase error:', error.message);
-                showToast('Firebase connection failed: ' + error.message);
+                showToast('Firebase error: ' + error.message);
                 return false;
             }
         }
