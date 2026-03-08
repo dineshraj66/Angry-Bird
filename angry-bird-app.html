@@ -880,12 +880,19 @@
             db.ref(path).set(entry)
                 .then(() => {
                     console.log('✅ Entry saved to Firebase:', entry.id);
+                    console.log('Saved entry data:', entry);
                     clearForm();
                     showToast('Entry saved! 🎉');
-                    setTimeout(() => loadEntries(), 500);
+                    console.log('Reloading entries in 500ms...');
+                    setTimeout(() => {
+                        console.log('Now reloading entries...');
+                        loadEntries();
+                    }, 500);
                 })
                 .catch((err) => {
                     console.error('❌ Save error:', err.message);
+                    console.error('Error code:', err.code);
+                    console.error('Full error:', err);
                     showToast('Error saving: ' + err.message);
                 });
         }
@@ -909,6 +916,9 @@
         // ========== DATA LOADING ==========
         function loadEntries() {
             console.log('📥 Loading entries from Firebase...');
+            console.log('Current User ID:', currentUserId);
+            console.log('Is Online:', isOnline);
+            console.log('DB Available:', !!db);
 
             if (!db || !isOnline) {
                 console.log('⚠️ Firebase not available');
@@ -919,22 +929,31 @@
             }
 
             const path = `users/${currentUserId}/entries`;
-            console.log('📍 Loading from:', path);
+            console.log('📍 Loading from path:', path);
+            console.log('Full URL would be:', `https://angry-bird-2776f-default-rtdb.asia-southeast1.firebasedatabase.app/${path}.json`);
 
             db.ref(path).on('value', (snap) => {
+                console.log('📦 Firebase snapshot received');
+                console.log('Snapshot exists:', snap.exists());
+                console.log('Raw snapshot val:', snap.val());
+                
                 const firebaseEntries = [];
                 snap.forEach(child => {
+                    console.log('Processing entry:', child.key, '→', child.val());
                     firebaseEntries.push(child.val());
                 });
-                console.log('✅ Entries loaded:', firebaseEntries.length);
+                console.log('✅ Total entries loaded:', firebaseEntries.length);
+                console.log('Entries array:', firebaseEntries);
                 
                 entries = firebaseEntries.sort((a, b) => b.timestamp - a.timestamp);
+                console.log('Sorted entries:', entries);
                 
                 updateDashboard();
                 updateHistory();
                 updateDebugInfo();
             }, (error) => {
                 console.error('❌ Load error:', error.message);
+                console.error('Error code:', error.code);
                 showToast('Error loading entries: ' + error.message);
             });
         }
