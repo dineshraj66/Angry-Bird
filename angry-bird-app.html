@@ -726,8 +726,12 @@
             // Initialize Firebase
             const fbReady = await initializeFirebase();
             
+            // Wait a moment for Firebase to establish connection
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
             if (fbReady) {
                 console.log('🟢 Firebase ready, loading data...');
+                console.log('Connection status before load:', isOnline);
                 loadEntries();
             } else {
                 console.log('❌ Firebase failed to initialize');
@@ -735,12 +739,14 @@
             }
             
             // Log diagnostics
-            console.log('=== ANGRY BIRD DIAGNOSTICS ===');
-            console.log('User ID:', currentUserId);
-            console.log('Firebase Project:', firebaseConfig.projectId);
-            console.log('Is Online:', isOnline);
-            console.log('DB Available:', !!db);
-            console.log('=== END DIAGNOSTICS ===');
+            setTimeout(() => {
+                console.log('=== ANGRY BIRD DIAGNOSTICS ===');
+                console.log('User ID:', currentUserId);
+                console.log('Firebase Project:', firebaseConfig.projectId);
+                console.log('Is Online:', isOnline);
+                console.log('DB Available:', !!db);
+                console.log('=== END DIAGNOSTICS ===');
+            }, 500);
         });
 
         // Service Worker Registration
@@ -867,9 +873,9 @@
 
             console.log('💾 Saving entry:', entry);
 
-            if (!db || !isOnline) {
-                console.error('❌ Firebase not available');
-                showToast('No internet connection. Cannot save.');
+            if (!db) {
+                console.error('❌ Firebase database not initialized');
+                showToast('Database not ready. Cannot save.');
                 return;
             }
 
@@ -920,8 +926,8 @@
             console.log('Is Online:', isOnline);
             console.log('DB Available:', !!db);
 
-            if (!db || !isOnline) {
-                console.log('⚠️ Firebase not available');
+            if (!db) {
+                console.log('⚠️ Firebase database not initialized');
                 entries = [];
                 updateDashboard();
                 updateHistory();
@@ -1078,9 +1084,9 @@
 
             console.log('🗑️ Deleting entry:', entryId);
 
-            if (!db || !isOnline) {
-                console.error('❌ Firebase not available');
-                showToast('No internet connection. Cannot delete.');
+            if (!db) {
+                console.error('❌ Firebase database not initialized');
+                showToast('Database not ready. Cannot delete.');
                 return;
             }
 
