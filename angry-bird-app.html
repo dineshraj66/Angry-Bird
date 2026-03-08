@@ -2,12 +2,30 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#d32f2f">
-    <meta name="description" content="Angry Bird - Track and manage your emotions">
-    <title>Angry Bird - Emotion Tracker</title>
-    <link rel="manifest" href="manifest.json">
+    <meta name="description" content="Angry Bird - Track and manage your emotions with real-time cloud sync">
+    
+    <!-- PWA Meta Tags -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Angry Bird">
+    <meta name="msapplication-TileColor" content="#d32f2f">
+    <meta name="msapplication-config" content="browserconfig.xml">
+    <meta name="application-name" content="Angry Bird">
+    
+    <!-- Standard Icons -->
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect fill='%23d32f2f' width='180' height='180'/><circle cx='90' cy='90' r='70' fill='%23ff5252'/><circle cx='75' cy='75' r='12' fill='%23000'/><circle cx='105' cy='75' r='12' fill='%23000'/><path d='M 70 100 Q 90 110 110 100' stroke='%23000' stroke-width='3' fill='none'/></svg>">
+    <link rel="shortcut icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect fill='%23d32f2f' width='180' height='180'/><circle cx='90' cy='90' r='70' fill='%23ff5252'/><circle cx='75' cy='75' r='12' fill='%23000'/><circle cx='105' cy='75' r='12' fill='%23000'/><path d='M 70 100 Q 90 110 110 100' stroke='%23000' stroke-width='3' fill='none'/></svg>">
+    
+    <!-- Apple Icons -->
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect fill='%23d32f2f' width='180' height='180'/><circle cx='90' cy='90' r='70' fill='%23ff5252'/><circle cx='75' cy='75' r='12' fill='%23000'/><circle cx='105' cy='75' r='12' fill='%23000'/><path d='M 70 100 Q 90 110 110 100' stroke='%23000' stroke-width='3' fill='none'/></svg>">
+    
+    <!-- Manifest -->
+    <link rel="manifest" href="manifest.json">
+    
+    <title>Angry Bird - Emotion Tracker</title>
     <style>
         * {
             margin: 0;
@@ -966,6 +984,8 @@
 
         // ========== DASHBOARD UPDATE ==========
         function updateDashboard() {
+            console.log('📊 Updating dashboard with', entries.length, 'entries');
+            
             const total = entries.length;
             const thisMonth = entries.filter(e => {
                 const entryDate = new Date(e.date);
@@ -974,6 +994,8 @@
                        entryDate.getFullYear() === now.getFullYear();
             }).length;
 
+            console.log('Total:', total, 'This month:', thisMonth);
+            
             document.getElementById('totalEntries').textContent = total;
             document.getElementById('monthEntries').textContent = thisMonth;
 
@@ -985,6 +1007,7 @@
             const commonEmotion = Object.keys(emotionCounts).length > 0
                 ? Object.entries(emotionCounts).reduce((a, b) => a[1] > b[1] ? a : b)[0]
                 : '—';
+            console.log('Common emotion:', commonEmotion);
             document.getElementById('commonEmotion').textContent = commonEmotion;
 
             // Most common location
@@ -995,6 +1018,7 @@
             const commonLocation = Object.keys(locationCounts).length > 0
                 ? Object.entries(locationCounts).reduce((a, b) => a[1] > b[1] ? a : b)[0]
                 : '—';
+            console.log('Common location:', commonLocation);
             document.getElementById('commonLocation').textContent = commonLocation;
 
             // Most common root cause
@@ -1006,6 +1030,7 @@
             const commonCause = Object.keys(causeCounts).length > 0
                 ? Object.entries(causeCounts).reduce((a, b) => a[1] > b[1] ? a : b)[0]
                 : '—';
+            console.log('Common cause:', commonCause);
             document.getElementById('commonCause').textContent = commonCause;
 
             // Last entry
@@ -1017,14 +1042,20 @@
                     minute: '2-digit'
                   })
                 : '—';
+            console.log('Last entry:', lastEntry);
             document.getElementById('lastEntry').textContent = lastEntry;
+            
+            console.log('✅ Dashboard updated');
         }
 
         // ========== HISTORY UPDATE ==========
         function updateHistory() {
+            console.log('📖 Updating history with', entries.length, 'entries');
+            
             const historyList = document.getElementById('historyList');
             
             if (entries.length === 0) {
+                console.log('No entries to display');
                 historyList.innerHTML = `
                     <div class="empty-state">
                         <div class="empty-icon">📚</div>
@@ -1035,7 +1066,7 @@
                 return;
             }
 
-            historyList.innerHTML = entries.map(entry => {
+            const html = entries.map(entry => {
                 const entryDate = new Date(entry.date);
                 const formattedDate = entryDate.toLocaleDateString('en-US', {
                     month: 'short',
@@ -1076,6 +1107,9 @@
                     </div>
                 `;
             }).join('');
+            
+            historyList.innerHTML = html;
+            console.log('✅ History updated');
         }
 
         // ========== DELETE ENTRY ==========
