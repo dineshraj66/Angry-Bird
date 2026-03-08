@@ -12,90 +12,18 @@
   "theme_color": "#d32f2f",
   "icons": [
     {
-      "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxOTIgMTkyIj48cmVjdCBmaWxsPSIjZDMyZjJmIiB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiIvPjxjaXJjbGUgY3g9Ijk2IiBjeT0iOTYiIHI9Ijc1IiBmaWxsPSIjZmY1MjUyIi8+PGNpcmNsZSBjeD0iNzgiIGN5PSI3OCIgcj0iMTQiIGZpbGw9IiMwMDAiLz48Y2lyY2xlIGN4PSIxMTQiIGN5PSI3OCIgcj0iMTQiIGZpbGw9IiMwMDAiLz48cGF0aCBkPSJNIDcyIDEwNSBRIDk2IDExNyAxMjAgMTA1IiBzdHJva2U9IiMwMDAiIHN0cm9rZS13aWR0aD0iNCIgZmlsbD0ibm9uZSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PC9zdmc+",
+      "src": "./icon-192.svg",
       "sizes": "192x192",
       "type": "image/svg+xml",
       "purpose": "any"
     },
     {
-      "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cmVjdCBmaWxsPSIjZDMyZjJmIiB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIvPjxjaXJjbGUgY3g9IjI1NiIgY3k9IjI1NiIgcj0iMjAwIiBmaWxsPSIjZmY1MjUyIi8+PGNpcmNsZSBjeD0iMjA4IiBjeT0iMjA4IiByPSIzOCIgZmlsbD0iIzAwMCIvPjxjaXJjbGUgY3g9IjMwNCIgY3k9IjIwOCIgcj0iMzgiIGZpbGw9IiMwMDAiLz48cGF0aCBkPSJNIDE5MiAyODAgUSAyNTYgMzEyIDMyMCAyODAiIHN0cm9rZT0iIzAwMCIgc3Ryb2tlLXdpZHRoPSIxMCIgZmlsbD0ibm9uZSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PC9zdmc+",
+      "src": "./icon-512.svg",
       "sizes": "512x512",
       "type": "image/svg+xml",
       "purpose": "any maskable"
-    },
-    {
-      "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNTYgMjU2Ij48cmVjdCBmaWxsPSIjZDMyZjJmIiB3aWR0aD0iMjU2IiBoZWlnaHQ9IjI1NiIvPjxjaXJjbGUgY3g9IjEyOCIgY3k9IjEyOCIgcj0iMTAwIiBmaWxsPSIjZmY1MjUyIi8+PGNpcmNsZSBjeD0iMTA1IiBjeT0iMTA1IiByPSIyMCIgZmlsbD0iIzAwMCIvPjxjaXJjbGUgY3g9IjE1MSIgY3k9IjEwNSIgcj0iMjAiIGZpbGw9IiMwMDAiLz48cGF0aCBkPSJNIDk1IDE0MCBRIDEyOCAxNTUgMTYxIDE0MCIgc3Ryb2tlPSIjMDAwIiBzdHJva2Utd2lkdGg9IjYiIGZpbGw9Im5vbmUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPjwvc3ZnPg==",
-      "sizes": "256x256",
-      "type": "image/svg+xml",
-      "purpose": "any"
-    },
-    {
-      "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMjggMTI4Ij48cmVjdCBmaWxsPSIjZDMyZjJmIiB3aWR0aD0iMTI4IiBoZWlnaHQ9IjEyOCIvPjxjaXJjbGUgY3g9IjY0IiBjeT0iNjQiIHI9IjUwIiBmaWxsPSIjZmY1MjUyIi8+PGNpcmNsZSBjeD0iNTIiIGN5PSI1MiIgcj0iMTAiIGZpbGw9IiMwMDAiLz48Y2lyY2xlIGN4PSI3NiIgY3k9IjUyIiByPSIxMCIgZmlsbD0iIzAwMCIvPjxwYXRoIGQ9Ik0gNDggNzAgUSA2NCA4MCc4MCIsIHN0cm9rZT0iIzAwMCIgc3Ryb2tlLXdpZHRoPSIzIiBmaWxsPSJub25lIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz48L3N2Zz4=",
-      "sizes": "128x128",
-      "type": "image/svg+xml",
-      "purpose": "any"
     }
   ],
   "categories": ["health", "productivity", "lifestyle"],
-  "screenshots": [
-    {
-      "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1NDAgNzIwIj48cmVjdCBmaWxsPSIjZmZmOWU2IiB3aWR0aD0iNTQwIiBoZWlnaHQ9IjcyMCIvPjxyZWN0IGZpbGw9IiNkMzJmMmYiIHdpZHRoPSI1NDAiIGhlaWdodD0iMTAwIi8+PHRleHQgeD0iMjcwIiB5PSI2NSIgZm9udC1mYW1pbHk9IkFyaWFsLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iNDAvIiBmb250LXdlaWdodD0iYm9sZCIgZmlsbD0id2hpdGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiPkFuZ3J5IEJpcmQ8L3RleHQ+PHRleHQgeD0iMjcwIiB5PSIyMDAiIGZvbnQtZmFtaWx5PSJBcmlhbCxzYW5zLXNlcmlmIiBmb250LXNpemU9IjI0IiBmaWxsPSIjMzMzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5FbW90aW9uIFRyYWNrZXI8L3RleHQ+PHRleHQgeD0iMjcwIiB5PSIzMDAiIGZvbnQtZmFtaWx5PSJBcmlhbCxzYW5zLXNlcmlmIiBmb250LXNpemU9IjE4IiBmaWxsPSIjNjY2IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5UcmFjayBZb3VyIEVtb3Rpb25zPC90ZXh0Pjx0ZXh0IHg9IjI3MCIgeT0iMzUwIiBmb250LWZhbWlseT0iQXJpYWwsc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxOCIgZmlsbD0iIzY2NiIgdGV4dC1hbmNob3I9Im1pZGRsZSI+UmVhbC10aW1lIENsb3VkIFN5bmM8L3RleHQ+PHRleHQgeD0iMjcwIiB5PSI0MDAiIGZvbnQtZmFtaWx5PSJBcmlhbCxzYW5zLXNlcmlmIiBmb250LXNpemU9IjE4IiBmaWxsPSIjNjY2IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5GaXJlYmFzZSBCYWNrdXA8L3RleHQ+PC9zdmc+",
-      "sizes": "540x720",
-      "type": "image/svg+xml",
-      "form_factor": "narrow"
-    },
-    {
-      "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMjgwIDcyMCI+PHJlY3QgZmlsbD0iI2ZmZjllNiIgd2lkdGg9IjEyODAiIGhlaWdodD0iNzIwIi8+PHJlY3QgZmlsbD0iI2QzMmYyZiIgd2lkdGg9IjEyODAiIGhlaWdodD0iOTAiLz48Y2lyY2xlIGN4PSI2NDAwIiBjeT0iMzYwIiByPSI4MCIgZmlsbD0iI2ZmNTI1MiIvPjxjaXJjbGUgY3g9IjYzNjAiIGN5PSIzMjAiIHI9IjE2IiBmaWxsPSIjMDAwIi8+PGNpcmNsZSBjeD0iNjQwIiBjeT0iMzIwIiByPSIxNiIgZmlsbD0iIzAwMCIvPjxwYXRoIGQ9Ik0gNjMyMCAzODAgUSA2NDAwIDQxMCA2NDgwIDM4MCIgc3Ryb2tlPSIjMDAwIiBzdHJva2Utd2lkdGg9IjgiIGZpbGw9Im5vbmUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPjx0ZXh0IHg9IjY0MCIgeT0iMjAwIiBmb250LWZhbWlseT0iQXJpYWwsc2Fucy1zZXJpZiIgZm9udC1zaXplPSI1MiIgZm9udC13ZWlnaHQ9ImJvbGQiIGZpbGw9IiMzMzMiIHRleHQtYW5jaG9yPSJtaWRkbGUiPkFuZ3J5IEJpcmQ8L3RleHQ+PHRleHQgeD0iNjQwIiB5PSI0NjAiIGZvbnQtZmFtaWx5PSJBcmlhbCxzYW5zLXNlcmlmIiBmb250LXNpemU9IjM0IiBmaWxsPSIjMzMzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5UcmFjaywgQW5hbHl6ZSAmIE1hbmFnZTwvdGV4dD48dGV4dCB4PSI2NDAiIHk9IjUwOCIgZm9udC1mYW1pbHk9IkFyaWFsLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMzQiIGZpbGw9IiMzMzMiIHRleHQtYW5jaG9yPSJtaWRkbGUiPllvdXIgRW1vdGlvbnM8L3RleHQ+PC9zdmc+",
-      "sizes": "1280x720",
-      "type": "image/svg+xml",
-      "form_factor": "wide"
-    }
-  ],
-  "share_target": {
-    "action": "./share",
-    "method": "POST",
-    "enctype": "multipart/form-data",
-    "params": {
-      "title": "title",
-      "text": "text",
-      "url": "url"
-    }
-  },
-  "shortcuts": [
-    {
-      "name": "New Emotion Entry",
-      "short_name": "New Entry",
-      "description": "Quickly log your current emotion",
-      "url": "./index.html?tab=entry",
-      "icons": [
-        {
-          "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA5NiA5NiI+PHJlY3QgZmlsbD0iI2QzMmYyZiIgd2lkdGg9Ijk2IiBoZWlnaHQ9Ijk2IiByeD0iOCIvPjx0ZXh0IHg9IjQ4IiB5PSI2MCIgZm9udC1zaXplPSI1MCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSI+772aPC90ZXh0Pjwvc3ZnPg==",
-          "sizes": "96x96",
-          "type": "image/svg+xml"
-        }
-      ]
-    },
-    {
-      "name": "View History",
-      "short_name": "History",
-      "description": "Check your emotion history",
-      "url": "./index.html?tab=history",
-      "icons": [
-        {
-          "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA5NiA5NiI+PHJlY3QgZmlsbD0iI2QzMmYyZiIgd2lkdGg9Ijk2IiBoZWlnaHQ9Ijk2IiByeD0iOCIvPjx0ZXh0IHg9IjQ4IiB5PSI2MCIgZm9udC1zaXplPSI1MCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZG9taW5hbnQtYmFzZWxpbmU9Im1pZGRsZSI+PTwvdGV4dD48L3N2Zz4=",
-          "sizes": "96x96",
-          "type": "image/svg+xml"
-        }
-      ]
-    }
-  ],
-  "prefer_related_applications": false,
-  "protocol_handlers": [
-    {
-      "protocol": "web+angrybird",
-      "url": "./index.html?entry=%s"
-    }
-  ]
+  "prefer_related_applications": false
 }
-
-
